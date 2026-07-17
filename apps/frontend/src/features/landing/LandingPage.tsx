@@ -4,10 +4,12 @@ import { HeroSection } from './components/HeroSection';
 import { TrustedPartners } from './components/TrustedPartners';
 import { BenefitsSection } from './components/BenefitsSection';
 import { FeatureShowcaseSection } from './components/FeatureShowcaseSection';
+import { PricingSection } from './components/PricingSection';
 import { TestimonialsSection } from './components/TestimonialsSection';
 import { FaqSection } from './components/FaqSection';
 import { ContactCtaSection } from './components/ContactCtaSection';
 import { LandingFooter } from './components/LandingFooter';
+import { Reveal } from '@/components/Reveal';
 import { PAGE_GRADIENT } from './constant/landingTheme';
 
 export function LandingPage() {
@@ -15,13 +17,18 @@ export function LandingPage() {
     <Box sx={{ minHeight: '100vh', background: PAGE_GRADIENT }}>
       <LandingNavbar />
       <HeroSection />
-      <TrustedPartners />
+      <Reveal>
+        <TrustedPartners />
+      </Reveal>
       <Box sx={{ bgcolor: '#fff' }}>
         <BenefitsSection />
         <FeatureShowcaseSection />
+        <PricingSection />
         <TestimonialsSection />
         <FaqSection />
-        <ContactCtaSection />
+        <Reveal>
+          <ContactCtaSection />
+        </Reveal>
         <LandingFooter />
       </Box>
     </Box>

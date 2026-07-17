@@ -23,15 +23,15 @@ export function MockPanel({ variant }: { variant: 'quotation' | 'analytics' }) {
 
 function QuotationMock() {
   const rows = [
-    { label: 'Brand strategy', value: '$2,400' },
-    { label: 'Campaign setup', value: '$1,800' },
-    { label: 'Monthly retainer', value: '$3,650' },
+    { label: 'Brand strategy', value: '৳45,000' },
+    { label: 'Campaign setup', value: '৳32,000' },
+    { label: 'Monthly retainer', value: '৳65,000' },
   ];
   return (
     <Box>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
         <Typography fontWeight={700} color={INK}>
-          Quotation · Acme Co
+          Quotation · Rupsha Traders
         </Typography>
         <Box
           sx={{
@@ -71,7 +71,7 @@ function QuotationMock() {
           Total
         </Typography>
         <Typography fontWeight={800} color={INK} sx={{ fontSize: 20 }}>
-          $7,850
+          ৳1,42,000
         </Typography>
       </Stack>
     </Box>
@@ -87,7 +87,7 @@ function AnalyticsMock() {
             Revenue this month
           </Typography>
           <Typography fontWeight={800} color={INK} sx={{ fontSize: 26 }}>
-            $32,750
+            ৳3,27,500
           </Typography>
         </Box>
         <Box

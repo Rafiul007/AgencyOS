@@ -16,6 +16,7 @@ import ShieldIcon from '@mui/icons-material/ShieldOutlined';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckIcon from '@mui/icons-material/CheckCircleOutline';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CloseIcon from '@mui/icons-material/Close';
 
 export const Icons = {
   Add: AddIcon,
@@ -34,6 +35,7 @@ export const Icons = {
   ArrowForward: ArrowForwardIcon,
   Check: CheckIcon,
   ExpandMore: ExpandMoreIcon,
+  Close: CloseIcon,
 } as const;
 
 export type IconName = keyof typeof Icons;

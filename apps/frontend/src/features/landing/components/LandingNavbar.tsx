@@ -1,7 +1,12 @@
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { darkButtonSx, INK } from '../constant/landingTheme';
 
-const NAV_LINKS = ['Product', 'Pricing', 'Resources', 'Blog'];
+const NAV_LINKS = [
+  { label: 'Product', href: '#features' },
+  { label: 'Pricing', href: '#pricing' },
+  { label: 'Reviews', href: '#reviews' },
+  { label: 'FAQs', href: '#faqs' },
+];
 
 export function LandingNavbar() {
   return (
@@ -38,9 +43,9 @@ export function LandingNavbar() {
           <Stack direction="row" spacing={3} sx={{ display: { xs: 'none', md: 'flex' } }}>
             {NAV_LINKS.map((link) => (
               <Box
-                key={link}
+                key={link.label}
                 component="a"
-                href="#features"
+                href={link.href}
                 sx={{
                   color: INK,
                   opacity: 0.75,
@@ -50,7 +55,7 @@ export function LandingNavbar() {
                   '&:hover': { opacity: 1 },
                 }}
               >
-                {link}
+                {link.label}
               </Box>
             ))}
           </Stack>

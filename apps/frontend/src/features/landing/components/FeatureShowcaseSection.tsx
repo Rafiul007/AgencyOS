@@ -1,6 +1,7 @@
 import { Box, Container, Stack, Typography } from '@mui/material';
 import { Icons } from '@/lib/iconHash';
 import { MockPanel } from './MockPanel';
+import { Reveal } from '@/components/Reveal';
 import { FEATURE_BLOCKS } from '../constant/landingContent';
 import type { IFeatureBlock } from '../constant/landingContent';
 import { INK, INK_SOFT } from '../constant/landingTheme';
@@ -26,7 +27,7 @@ function FeatureBlockRow({ block, reversed }: { block: IFeatureBlock; reversed: 
       spacing={{ xs: 4, md: 8 }}
       alignItems="center"
     >
-      <Box sx={{ flex: 1 }}>
+      <Reveal direction={reversed ? 'right' : 'left'} sx={{ flex: 1 }}>
         <Typography color="#6e56cf" fontWeight={700} sx={{ mb: 1 }}>
           {block.eyebrow}
         </Typography>
@@ -52,10 +53,10 @@ function FeatureBlockRow({ block, reversed }: { block: IFeatureBlock; reversed: 
             </Stack>
           ))}
         </Stack>
-      </Box>
-      <Box sx={{ flex: 1, width: '100%' }}>
+      </Reveal>
+      <Reveal direction={reversed ? 'left' : 'right'} delay={120} sx={{ flex: 1, width: '100%' }}>
         <MockPanel variant={block.variant} />
-      </Box>
+      </Reveal>
     </Stack>
   );
 }

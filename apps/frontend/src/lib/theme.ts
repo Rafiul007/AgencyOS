@@ -9,4 +9,24 @@ export const theme = createTheme({
     secondary: { main: '#6e40c9' },
   },
   shape: { borderRadius: 8 },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        html: {
+          scrollBehavior: 'smooth',
+          // Offset anchor targets so they aren't hidden under the sticky navbar.
+          scrollPaddingTop: '84px',
+        },
+        // Respect users who prefer reduced motion: neutralise animations/transitions.
+        '@media (prefers-reduced-motion: reduce)': {
+          '*, *::before, *::after': {
+            animationDuration: '0.01ms !important',
+            animationIterationCount: '1 !important',
+            transitionDuration: '0.01ms !important',
+            scrollBehavior: 'auto !important',
+          },
+        },
+      },
+    },
+  },
 });
