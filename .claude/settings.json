@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(pnpm --version)",
+      "Bash(git --version)",
+      "Bash(docker --version)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm rebuild *)",
+      "Bash(pnpm --filter @agencyos/shared build)",
+      "Bash(pnpm --filter @agencyos/backend build)",
+      "Bash(pnpm --filter @agencyos/frontend build)",
+      "Bash(DATABASE_URL=\"postgresql://x:x@localhost:5432/x\" pnpm --filter @agencyos/backend exec prisma validate)",
+      "Bash(mkdir -p .husky)",
+      "Bash(printf 'pnpm lint-staged\\\\n')",
+      "Bash(git config *)",
+      "Bash(pnpm --filter @agencyos/frontend exec tsc --noEmit)",
+      "Bash(echo \"FRONTEND_EXIT=$?\")",
+      "Bash(echo \"BACKEND_EXIT=$?\")",
+      "Bash(pnpm --filter @agencyos/backend add bcryptjs@^2.4.3)",
+      "Bash(pnpm --filter @agencyos/backend add -D @types/bcryptjs@^2.4.6)",
+      "Bash(DATABASE_URL=\"postgresql://x:x@localhost:5432/x\" pnpm --filter @agencyos/backend exec prisma generate)",
+      "Bash(cp .env.example apps/backend/.env)",
+      "Bash(docker compose *)",
+      "Bash(gh auth *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  }
+}
