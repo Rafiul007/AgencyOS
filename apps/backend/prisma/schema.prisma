@@ -33,6 +33,34 @@ enum OnboardingTaskStatus {
   SKIPPED
 }
 
+enum CatalogItemType {
+  SERVICE
+  PRODUCT
+  PACKAGE
+  ADDON
+}
+
+enum PricingUnit {
+  FIXED
+  MONTHLY
+  PER_UNIT
+}
+
+enum ClientStatus {
+  LEAD
+  ACTIVE
+  INACTIVE
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CONVERTED
+}
+
 /// A workspace = a tenant (a company or agency). The Owner is the subscriber.
 model Tenant {
   id                   String    @id @default(cuid())
@@ -49,6 +77,9 @@ model Tenant {
   users           User[]
   subscription    Subscription?
   onboardingTasks OnboardingTask[]
+  catalogItems    CatalogItem[]
+  clients         Client[]
+  quotes          Quote[]
 
   @@map("tenants")
 }
@@ -106,6 +137,103 @@ model User {
 
   @@index([tenantId])
   @@map("users")
+}
+
+/// A saved service / product / package / add-on the agency quotes from.
+/// Money is stored as integer minor units (BDT poisha), never floats.
+model CatalogItem {
+  id          String          @id @default(cuid())
+  tenantId    String
+  type        CatalogItemType @default(SERVICE)
+  name        String
+  description String?
+  category    String?
+  pricingUnit PricingUnit     @default(FIXED)
+  priceMinor  Int             @default(0)
+  currency    String          @default("BDT")
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  quoteLines QuoteLineItem[]
+
+  @@index([tenantId])
+  @@index([tenantId, type])
+  @@map("catalog_items")
+}
+
+/// A quotation sent to a client. Totals are computed server-side (never trusted
+/// from the client) and stored in integer minor units (BDT poisha).
+model Quote {
+  id             String      @id @default(cuid())
+  tenantId       String
+  number         String
+  clientId       String?
+  status         QuoteStatus @default(DRAFT)
+  currency       String      @default("BDT")
+  issueDate      DateTime    @default(now())
+  expiresAt      DateTime?
+  note           String?
+  terms          String?
+  taxRatePercent Int         @default(0)
+  discountMinor  Int         @default(0)
+  subtotalMinor  Int         @default(0)
+  taxMinor       Int         @default(0)
+  totalMinor     Int         @default(0)
+  createdById    String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  tenant    Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client    Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  lineItems QuoteLineItem[]
+
+  @@unique([tenantId, number])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("quotes")
+}
+
+model QuoteLineItem {
+  id                String  @id @default(cuid())
+  quoteId           String
+  catalogItemId     String?
+  description       String
+  unit              String  @default("FIXED")
+  quantity          Int     @default(1)
+  unitPriceMinor    Int     @default(0)
+  lineDiscountMinor Int     @default(0)
+  lineTotalMinor    Int     @default(0)
+  sortOrder         Int     @default(0)
+
+  quote       Quote        @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  catalogItem CatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+
+  @@index([quoteId])
+  @@map("quote_line_items")
+}
+
+/// A client (the agency's customer) that quotations, invoices, and tickets attach to.
+model Client {
+  id          String       @id @default(cuid())
+  tenantId    String
+  name        String
+  contactName String?
+  email       String?
+  phone       String?
+  address     String?
+  notes       String?
+  status      ClientStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  tenant Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  quotes Quote[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("clients")
 }
 
 /// Hashed refresh tokens for rotation + revocation (one row per active session).

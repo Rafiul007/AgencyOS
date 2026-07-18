@@ -17,6 +17,23 @@ const OnboardingPage = lazy(() =>
 const DashboardPage = lazy(() =>
   import('@/features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage })),
 );
+const CatalogPage = lazy(() =>
+  import('@/features/catalog/CatalogPage').then((m) => ({ default: m.CatalogPage })),
+);
+const ClientsPage = lazy(() =>
+  import('@/features/clients/ClientsPage').then((m) => ({ default: m.ClientsPage })),
+);
+const QuotationsListPage = lazy(() =>
+  import('@/features/quotations/QuotationsListPage').then((m) => ({
+    default: m.QuotationsListPage,
+  })),
+);
+const QuoteBuilderPage = lazy(() =>
+  import('@/features/quotations/QuoteBuilderPage').then((m) => ({ default: m.QuoteBuilderPage })),
+);
+const QuoteDetailPage = lazy(() =>
+  import('@/features/quotations/QuoteDetailPage').then((m) => ({ default: m.QuoteDetailPage })),
+);
 
 function PageFallback() {
   return (
@@ -36,6 +53,11 @@ export function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/clients" element={<ClientsPage />} />
+          <Route path="/catalog" element={<CatalogPage />} />
+          <Route path="/quotations" element={<QuotationsListPage />} />
+          <Route path="/quotations/new" element={<QuoteBuilderPage />} />
+          <Route path="/quotations/:id" element={<QuoteDetailPage />} />
         </Route>
       </Routes>
     </Suspense>

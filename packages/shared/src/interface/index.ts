@@ -74,3 +74,98 @@ export interface IOnboardingState {
   /** 0–100, based on tasks that are DONE. */
   progress: number;
 }
+
+export enum CatalogItemType {
+  SERVICE = 'SERVICE',
+  PRODUCT = 'PRODUCT',
+  PACKAGE = 'PACKAGE',
+  ADDON = 'ADDON',
+}
+
+export enum PricingUnit {
+  FIXED = 'FIXED',
+  MONTHLY = 'MONTHLY',
+  PER_UNIT = 'PER_UNIT',
+}
+
+export enum ClientStatus {
+  LEAD = 'LEAD',
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
+
+/** A client (the agency's customer) that quotations and invoices attach to. */
+export interface IClient {
+  id: string;
+  tenantId: string;
+  name: string;
+  contactName: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  notes: string | null;
+  status: ClientStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A saved service/product/package/add-on. Money is in integer minor units (BDT poisha). */
+export interface ICatalogItem {
+  id: string;
+  tenantId: string;
+  type: CatalogItemType;
+  name: string;
+  description: string | null;
+  category: string | null;
+  pricingUnit: PricingUnit;
+  priceMinor: number;
+  currency: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export enum QuoteStatus {
+  DRAFT = 'DRAFT',
+  SENT = 'SENT',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+  EXPIRED = 'EXPIRED',
+  CONVERTED = 'CONVERTED',
+}
+
+export interface IQuoteLineItem {
+  id: string;
+  catalogItemId: string | null;
+  description: string;
+  unit: string;
+  quantity: number;
+  unitPriceMinor: number;
+  lineDiscountMinor: number;
+  lineTotalMinor: number;
+  sortOrder: number;
+}
+
+/** A quotation. Money fields are integer minor units (BDT poisha). */
+export interface IQuote {
+  id: string;
+  tenantId: string;
+  number: string;
+  clientId: string | null;
+  clientName: string | null;
+  status: QuoteStatus;
+  currency: string;
+  issueDate: string;
+  expiresAt: string | null;
+  note: string | null;
+  terms: string | null;
+  taxRatePercent: number;
+  discountMinor: number;
+  subtotalMinor: number;
+  taxMinor: number;
+  totalMinor: number;
+  createdAt: string;
+  updatedAt: string;
+  /** Present on the detail response, omitted from list summaries. */
+  lineItems?: IQuoteLineItem[];
+}
