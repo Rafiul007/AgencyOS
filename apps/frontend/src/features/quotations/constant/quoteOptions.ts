@@ -27,3 +27,13 @@ export const NEXT_STATUSES: Record<string, QuoteStatus[]> = {
   EXPIRED: [],
   CONVERTED: [],
 };
+
+export const EVENT_LABELS: Record<string, string> = {
+  CREATED: 'Created',
+  SENT: 'Sent to client',
+  VIEWED: 'Viewed by client',
+  APPROVED: 'Approved',
+  REJECTED: 'Rejected',
+  COMMENTED: 'Comment added',
+  CONVERTED: 'Converted to invoice',
+};

@@ -33,7 +33,8 @@
       "Bash(pnpm --filter @agencyos/backend exec prisma migrate dev --name catalog --skip-generate)",
       "PowerShell($c = Get-NetTCPConnection -LocalPort 4000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c.OwningProcess | Select-Object -Unique | ForEach-Object { try { Stop-Process -Id $_ -Force -ErrorAction Stop; \"Stopped PID $_\" } catch {} } } else { \"nothing listening on 4000\" })",
       "Bash(pnpm --filter @agencyos/backend exec prisma migrate dev --name clients --skip-generate)",
-      "PowerShell($c = Get-NetTCPConnection -LocalPort 4000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c.OwningProcess | Select-Object -Unique | ForEach-Object { try { Stop-Process -Id $_ -Force -ErrorAction Stop; \"Stopped PID $_\" } catch {} } } else { \"nothing on 4000\" })"
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 4000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c.OwningProcess | Select-Object -Unique | ForEach-Object { try { Stop-Process -Id $_ -Force -ErrorAction Stop; \"Stopped PID $_\" } catch {} } } else { \"nothing on 4000\" })",
+      "Bash(pnpm --filter @agencyos/backend exec prisma generate)"
     ]
   }
 }

@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/apiClient';
-import type { IQuote, QuoteStatus } from '@agencyos/shared';
+import type { IPublicQuote, IQuote, QuoteStatus } from '@agencyos/shared';
 
 export interface IQuoteLineInput {
   catalogItemId?: string | null;
@@ -35,6 +35,16 @@ export async function createQuote(input: ICreateQuoteInput): Promise<IQuote> {
   return data;
 }
 
+export async function updateQuote(id: string, input: ICreateQuoteInput): Promise<IQuote> {
+  const { data } = await apiClient.patch<IQuote>(`/quotations/${id}`, input);
+  return data;
+}
+
+export async function sendQuote(id: string): Promise<IQuote> {
+  const { data } = await apiClient.post<IQuote>(`/quotations/${id}/send`, {});
+  return data;
+}
+
 export async function updateQuoteStatus(id: string, status: QuoteStatus): Promise<IQuote> {
   const { data } = await apiClient.patch<IQuote>(`/quotations/${id}/status`, { status });
   return data;
@@ -42,4 +52,25 @@ export async function updateQuoteStatus(id: string, status: QuoteStatus): Promis
 
 export async function deleteQuote(id: string): Promise<void> {
   await apiClient.delete(`/quotations/${id}`);
+}
+
+// ---- Public (client-facing, token-based) ----
+
+export async function fetchPublicQuote(token: string): Promise<IPublicQuote> {
+  const { data } = await apiClient.get<IPublicQuote>(`/public/quotations/${token}`);
+  return data;
+}
+
+export async function approvePublicQuote(token: string, signerName: string): Promise<IPublicQuote> {
+  const { data } = await apiClient.post<IPublicQuote>(`/public/quotations/${token}/approve`, {
+    signerName,
+  });
+  return data;
+}
+
+export async function rejectPublicQuote(token: string, reason: string): Promise<IPublicQuote> {
+  const { data } = await apiClient.post<IPublicQuote>(`/public/quotations/${token}/reject`, {
+    reason,
+  });
+  return data;
 }

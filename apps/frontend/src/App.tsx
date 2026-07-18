@@ -34,6 +34,9 @@ const QuoteBuilderPage = lazy(() =>
 const QuoteDetailPage = lazy(() =>
   import('@/features/quotations/QuoteDetailPage').then((m) => ({ default: m.QuoteDetailPage })),
 );
+const PublicQuotePage = lazy(() =>
+  import('@/features/quotations/PublicQuotePage').then((m) => ({ default: m.PublicQuotePage })),
+);
 
 function PageFallback() {
   return (
@@ -50,6 +53,8 @@ export function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        {/* Public, no-login client quote link */}
+        <Route path="/q/:token" element={<PublicQuotePage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
@@ -58,6 +63,7 @@ export function App() {
           <Route path="/quotations" element={<QuotationsListPage />} />
           <Route path="/quotations/new" element={<QuoteBuilderPage />} />
           <Route path="/quotations/:id" element={<QuoteDetailPage />} />
+          <Route path="/quotations/:id/edit" element={<QuoteBuilderPage />} />
         </Route>
       </Routes>
     </Suspense>

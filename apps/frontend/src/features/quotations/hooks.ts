@@ -1,6 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { QuoteStatus } from '@agencyos/shared';
-import { createQuote, deleteQuote, fetchQuote, fetchQuotes, updateQuoteStatus } from './api';
+import {
+  createQuote,
+  deleteQuote,
+  fetchQuote,
+  fetchQuotes,
+  sendQuote,
+  updateQuote,
+  updateQuoteStatus,
+  type ICreateQuoteInput,
+} from './api';
 
 const QUOTES_KEY = ['quotations'];
 
@@ -41,5 +50,27 @@ export function useDeleteQuote() {
   return useMutation({
     mutationFn: deleteQuote,
     onSuccess: () => qc.invalidateQueries({ queryKey: QUOTES_KEY }),
+  });
+}
+
+export function useSendQuote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: sendQuote,
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: QUOTES_KEY });
+      qc.invalidateQueries({ queryKey: ['quotation', id] });
+    },
+  });
+}
+
+export function useUpdateQuote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: ICreateQuoteInput }) => updateQuote(id, input),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: QUOTES_KEY });
+      qc.invalidateQueries({ queryKey: ['quotation', id] });
+    },
   });
 }

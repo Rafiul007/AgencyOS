@@ -61,6 +61,16 @@ enum QuoteStatus {
   CONVERTED
 }
 
+enum QuoteEventType {
+  CREATED
+  SENT
+  VIEWED
+  APPROVED
+  REJECTED
+  COMMENTED
+  CONVERTED
+}
+
 /// A workspace = a tenant (a company or agency). The Owner is the subscriber.
 model Tenant {
   id                   String    @id @default(cuid())
@@ -182,17 +192,41 @@ model Quote {
   taxMinor       Int         @default(0)
   totalMinor     Int         @default(0)
   createdById    String?
+  // Client-facing public link + e-signature approval trail
+  publicToken     String?   @unique
+  sentAt          DateTime?
+  viewedAt        DateTime?
+  respondedAt     DateTime?
+  signerName      String?
+  approvalIp      String?
+  rejectionReason String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
   tenant    Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   client    Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
   lineItems QuoteLineItem[]
+  events    QuoteEvent[]
 
   @@unique([tenantId, number])
   @@index([tenantId])
   @@index([tenantId, status])
   @@map("quotes")
+}
+
+/// Timeline of everything that happened to a quote (created, sent, viewed, approved…).
+model QuoteEvent {
+  id        String         @id @default(cuid())
+  quoteId   String
+  type      QuoteEventType
+  message   String?
+  actor     String?
+  createdAt DateTime       @default(now())
+
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+  @@map("quote_events")
 }
 
 model QuoteLineItem {

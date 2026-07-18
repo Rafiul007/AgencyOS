@@ -146,6 +146,24 @@ export interface IQuoteLineItem {
   sortOrder: number;
 }
 
+export enum QuoteEventType {
+  CREATED = 'CREATED',
+  SENT = 'SENT',
+  VIEWED = 'VIEWED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  COMMENTED = 'COMMENTED',
+  CONVERTED = 'CONVERTED',
+}
+
+export interface IQuoteEvent {
+  id: string;
+  type: QuoteEventType;
+  message: string | null;
+  actor: string | null;
+  createdAt: string;
+}
+
 /** A quotation. Money fields are integer minor units (BDT poisha). */
 export interface IQuote {
   id: string;
@@ -164,8 +182,36 @@ export interface IQuote {
   subtotalMinor: number;
   taxMinor: number;
   totalMinor: number;
+  publicToken: string | null;
+  sentAt: string | null;
+  viewedAt: string | null;
+  respondedAt: string | null;
+  signerName: string | null;
+  rejectionReason: string | null;
   createdAt: string;
   updatedAt: string;
   /** Present on the detail response, omitted from list summaries. */
   lineItems?: IQuoteLineItem[];
+  events?: IQuoteEvent[];
+}
+
+/** The safe, client-facing shape served on the public quote link (no tenant/internal ids). */
+export interface IPublicQuote {
+  number: string;
+  agencyName: string;
+  clientName: string | null;
+  status: QuoteStatus;
+  currency: string;
+  issueDate: string;
+  expiresAt: string | null;
+  note: string | null;
+  terms: string | null;
+  taxRatePercent: number;
+  discountMinor: number;
+  subtotalMinor: number;
+  taxMinor: number;
+  totalMinor: number;
+  signerName: string | null;
+  respondedAt: string | null;
+  lineItems: IQuoteLineItem[];
 }

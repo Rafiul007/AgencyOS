@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -13,7 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import type { ICatalogItem } from '@agencyos/shared';
 import { RhfSelect } from '@/components/rhf/RhfSelect';
 import { RhfTextField } from '@/components/rhf/RhfTextField';
@@ -23,7 +23,7 @@ import { brand } from '@/lib/theme';
 import { DashboardLayout } from '@/features/dashboard/components/DashboardLayout';
 import { useClients } from '@/features/clients/hooks';
 import { useCatalogItems } from '@/features/catalog/hooks';
-import { useCreateQuote } from './hooks';
+import { useCreateQuote, useQuote, useUpdateQuote } from './hooks';
 
 interface ILineForm {
   catalogItemId: string | null;
@@ -59,7 +59,11 @@ const taka = (n: number) =>
 
 export function QuoteBuilderPage() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEdit = Boolean(id);
   const createQuote = useCreateQuote();
+  const updateQuote = useUpdateQuote();
+  const { data: existing } = useQuote(id);
   const { data: clients } = useClients();
   const { data: catalog } = useCatalogItems();
   const [catalogPick, setCatalogPick] = useState('');
@@ -76,8 +80,31 @@ export function QuoteBuilderPage() {
       lines: [{ ...BLANK_LINE }],
     },
   });
-  const { control, register, handleSubmit } = methods;
+  const { control, register, handleSubmit, reset } = methods;
   const { fields, append, remove } = useFieldArray({ control, name: 'lines' });
+
+  // In edit mode, prefill the form once the existing quote loads.
+  useEffect(() => {
+    if (existing) {
+      reset({
+        clientId: existing.clientId ?? '',
+        expiresAt: existing.expiresAt ? existing.expiresAt.slice(0, 10) : '',
+        vatEnabled: existing.taxRatePercent > 0,
+        taxRatePercent: existing.taxRatePercent || 15,
+        discount: existing.discountMinor / 100,
+        note: existing.note ?? '',
+        terms: existing.terms ?? '',
+        lines: (existing.lineItems ?? []).map((l) => ({
+          catalogItemId: l.catalogItemId,
+          description: l.description,
+          unit: l.unit,
+          quantity: l.quantity,
+          unitPrice: l.unitPriceMinor / 100,
+          lineDiscount: l.lineDiscountMinor / 100,
+        })),
+      });
+    }
+  }, [existing, reset]);
 
   const watchedLines = useWatch({ control, name: 'lines' });
   const vatEnabled = useWatch({ control, name: 'vatEnabled' });
@@ -131,7 +158,7 @@ export function QuoteBuilderPage() {
       window.alert('Add at least one line item with a description.');
       return;
     }
-    await createQuote.mutateAsync({
+    const payload = {
       clientId: values.clientId || undefined,
       expiresAt: values.expiresAt ? new Date(values.expiresAt).toISOString() : undefined,
       taxRatePercent: values.vatEnabled ? Number(values.taxRatePercent) || 0 : 0,
@@ -139,24 +166,34 @@ export function QuoteBuilderPage() {
       note: values.note || undefined,
       terms: values.terms || undefined,
       lines,
-    });
-    navigate('/quotations');
+    };
+    if (isEdit && id) {
+      await updateQuote.mutateAsync({ id, input: payload });
+      navigate(`/quotations/${id}`);
+    } else {
+      await createQuote.mutateAsync(payload);
+      navigate('/quotations');
+    }
   });
 
   return (
-    <DashboardLayout title="New quotation">
+    <DashboardLayout title={isEdit ? 'Edit quotation' : 'New quotation'}>
       <FormProvider {...methods}>
         <Box component="form" onSubmit={onSubmit} noValidate sx={{ maxWidth: 960 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
             <Typography variant="h4" fontWeight={800} color={brand.ink}>
-              New quotation
+              {isEdit ? 'Edit quotation' : 'New quotation'}
             </Typography>
             <Stack direction="row" spacing={1.5}>
               <Button variant="outlined" onClick={() => navigate('/quotations')}>
                 Cancel
               </Button>
-              <Button type="submit" variant="contained" disabled={createQuote.isPending}>
-                Save quotation
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={createQuote.isPending || updateQuote.isPending}
+              >
+                {isEdit ? 'Save changes' : 'Save quotation'}
               </Button>
             </Stack>
           </Stack>

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -21,11 +23,14 @@ import { downloadQuotePdf } from '@/lib/quotePdf';
 import { brand } from '@/lib/theme';
 import { DashboardLayout } from '@/features/dashboard/components/DashboardLayout';
 import { fetchOnboardingState } from '@/features/onboarding/api';
-import { useQuote, useDeleteQuote, useUpdateQuoteStatus } from './hooks';
-import { NEXT_STATUSES, STATUS_COLORS, STATUS_LABELS } from './constant/quoteOptions';
+import { useQuote, useDeleteQuote, useSendQuote, useUpdateQuoteStatus } from './hooks';
+import { EVENT_LABELS, NEXT_STATUSES, STATUS_COLORS, STATUS_LABELS } from './constant/quoteOptions';
 
 function fmtDate(iso: string | null): string {
   return iso ? new Date(iso).toLocaleDateString('en-GB') : '—';
+}
+function fmtDateTime(iso: string): string {
+  return new Date(iso).toLocaleString('en-GB');
 }
 
 export function QuoteDetailPage() {
@@ -37,7 +42,9 @@ export function QuoteDetailPage() {
     queryFn: fetchOnboardingState,
   });
   const updateStatus = useUpdateQuoteStatus();
+  const sendQuote = useSendQuote();
   const deleteQuote = useDeleteQuote();
+  const [copied, setCopied] = useState(false);
 
   if (isLoading || !quote) {
     return (
@@ -50,12 +57,21 @@ export function QuoteDetailPage() {
   }
 
   const agencyName = onboarding?.tenant.name ?? 'AgencyOS';
-  const nextStatuses = NEXT_STATUSES[quote.status] ?? [];
+  const publicUrl = quote.publicToken ? `${window.location.origin}/q/${quote.publicToken}` : null;
+  // On the detail page, offer manual transitions except SENT (handled by the Send button).
+  const manualStatuses = (NEXT_STATUSES[quote.status] ?? []).filter((s) => s !== 'SENT');
 
   const setStatus = (status: QuoteStatus) => updateStatus.mutate({ id: quote.id, status });
 
+  const copyLink = async () => {
+    if (!publicUrl) return;
+    await navigator.clipboard.writeText(publicUrl);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2000);
+  };
+
   const shareWhatsApp = () => {
-    const msg = `Quotation ${quote.number} from ${agencyName}\nTotal: ${formatMinor(quote.totalMinor, quote.currency)}`;
+    const msg = `Quotation ${quote.number} from ${agencyName}\nTotal: ${formatMinor(quote.totalMinor, quote.currency)}${publicUrl ? `\nView & approve: ${publicUrl}` : ''}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -99,13 +115,27 @@ export function QuoteDetailPage() {
         </Stack>
 
         <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+          {quote.status === 'DRAFT' && (
+            <>
+              <Button variant="outlined" onClick={() => navigate(`/quotations/${quote.id}/edit`)}>
+                Edit
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => sendQuote.mutate(quote.id)}
+                disabled={sendQuote.isPending}
+              >
+                Send
+              </Button>
+            </>
+          )}
           <Button variant="outlined" onClick={() => downloadQuotePdf(quote, agencyName)}>
             Download PDF
           </Button>
           <Button variant="outlined" onClick={shareWhatsApp}>
             WhatsApp
           </Button>
-          {nextStatuses.map((status) => (
+          {manualStatuses.map((status) => (
             <Button
               key={status}
               variant="contained"
@@ -121,6 +151,24 @@ export function QuoteDetailPage() {
         </Stack>
       </Stack>
 
+      {/* Public link */}
+      {publicUrl && (
+        <Alert severity="info" sx={{ mb: 3 }} icon={false}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1.5}
+            alignItems={{ sm: 'center' }}
+          >
+            <Typography variant="body2" sx={{ flexGrow: 1, wordBreak: 'break-all' }}>
+              Client link: <strong>{publicUrl}</strong>
+            </Typography>
+            <Button size="small" variant="outlined" onClick={copyLink}>
+              {copied ? 'Copied!' : 'Copy link'}
+            </Button>
+          </Stack>
+        </Alert>
+      )}
+
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="flex-start">
         {/* Line items + meta */}
         <Paper
@@ -130,6 +178,7 @@ export function QuoteDetailPage() {
           <Stack direction="row" spacing={4} sx={{ mb: 3 }}>
             <Meta label="Issued" value={fmtDate(quote.issueDate)} />
             <Meta label="Valid till" value={fmtDate(quote.expiresAt)} />
+            {quote.signerName && <Meta label="Signed by" value={quote.signerName} />}
           </Stack>
 
           <Table size="small">
@@ -175,31 +224,52 @@ export function QuoteDetailPage() {
           )}
         </Paper>
 
-        {/* Totals */}
-        <Paper
-          elevation={0}
-          sx={{ p: 3, borderRadius: 3, border: 1, borderColor: 'divider', width: { md: 300 } }}
-        >
-          <Row label="Subtotal" value={formatMinor(quote.subtotalMinor, quote.currency)} />
-          {quote.discountMinor > 0 && (
-            <Row label="Discount" value={`- ${formatMinor(quote.discountMinor, quote.currency)}`} />
-          )}
-          {quote.taxMinor > 0 && (
-            <Row
-              label={`VAT (${quote.taxRatePercent}%)`}
-              value={formatMinor(quote.taxMinor, quote.currency)}
-            />
-          )}
-          <Divider sx={{ my: 1.5 }} />
-          <Stack direction="row" justifyContent="space-between">
-            <Typography fontWeight={800} color={brand.ink}>
-              Total
+        {/* Totals + timeline */}
+        <Stack spacing={3} sx={{ width: { xs: '100%', md: 300 } }}>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: 1, borderColor: 'divider' }}>
+            <Row label="Subtotal" value={formatMinor(quote.subtotalMinor, quote.currency)} />
+            {quote.discountMinor > 0 && (
+              <Row
+                label="Discount"
+                value={`- ${formatMinor(quote.discountMinor, quote.currency)}`}
+              />
+            )}
+            {quote.taxMinor > 0 && (
+              <Row
+                label={`VAT (${quote.taxRatePercent}%)`}
+                value={formatMinor(quote.taxMinor, quote.currency)}
+              />
+            )}
+            <Divider sx={{ my: 1.5 }} />
+            <Stack direction="row" justifyContent="space-between">
+              <Typography fontWeight={800} color={brand.ink}>
+                Total
+              </Typography>
+              <Typography fontWeight={800} color={brand.ink}>
+                {formatMinor(quote.totalMinor, quote.currency)}
+              </Typography>
+            </Stack>
+          </Paper>
+
+          <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: 1, borderColor: 'divider' }}>
+            <Typography fontWeight={700} color={brand.ink} sx={{ mb: 1.5 }}>
+              Activity
             </Typography>
-            <Typography fontWeight={800} color={brand.ink}>
-              {formatMinor(quote.totalMinor, quote.currency)}
-            </Typography>
-          </Stack>
-        </Paper>
+            <Stack spacing={1.5}>
+              {(quote.events ?? []).map((event) => (
+                <Box key={event.id}>
+                  <Typography variant="body2" color={brand.ink} fontWeight={600}>
+                    {EVENT_LABELS[event.type] ?? event.type}
+                    {event.actor ? ` · ${event.actor}` : ''}
+                  </Typography>
+                  <Typography variant="caption" color={brand.inkSoft}>
+                    {fmtDateTime(event.createdAt)}
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
+          </Paper>
+        </Stack>
       </Stack>
     </DashboardLayout>
   );

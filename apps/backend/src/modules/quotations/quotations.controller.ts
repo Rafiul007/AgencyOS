@@ -42,6 +42,22 @@ export class QuotationsController {
   }
 
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT)
+  @Patch(':id')
+  update(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: CreateQuoteDto,
+  ): Promise<IQuote> {
+    return this.quotationsService.update(tenantId, id, dto);
+  }
+
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT)
+  @Post(':id/send')
+  send(@CurrentUser('tenantId') tenantId: string, @Param('id') id: string): Promise<IQuote> {
+    return this.quotationsService.send(tenantId, id);
+  }
+
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT)
   @Patch(':id/status')
   updateStatus(
     @CurrentUser('tenantId') tenantId: string,
