@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import { HeroShowcase } from './HeroShowcase';
 import { RequestDemoModal } from './RequestDemoModal';
 import { Reveal } from '@/components/Reveal';
-import { darkButtonSx, INK, INK_SOFT, lightButtonSx } from '../constant/landingTheme';
+import { INK, INK_SOFT } from '../constant/landingTheme';
 
 export function HeroSection() {
   const [demoOpen, setDemoOpen] = useState(false);
@@ -40,10 +41,10 @@ export function HeroSection() {
             justifyContent="center"
             sx={{ mt: 5 }}
           >
-            <Button href="#get-started" size="large" disableElevation sx={darkButtonSx}>
+            <Button component={RouterLink} to="/register" size="large" variant="contained">
               Try for free
             </Button>
-            <Button size="large" sx={lightButtonSx} onClick={() => setDemoOpen(true)}>
+            <Button size="large" variant="outlined" onClick={() => setDemoOpen(true)}>
               Request a demo
             </Button>
           </Stack>

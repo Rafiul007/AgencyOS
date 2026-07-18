@@ -1,5 +1,7 @@
-import { Box, Button, Container, Stack, Typography } from '@mui/material';
-import { darkButtonSx, INK } from '../constant/landingTheme';
+import { Box, Button, Container, Stack } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import { Logo } from '@/components/Logo';
+import { INK } from '../constant/landingTheme';
 
 const NAV_LINKS = [
   { label: 'Product', href: '#features' },
@@ -26,19 +28,7 @@ export function LandingNavbar() {
             boxShadow: '0 8px 24px -16px rgba(27,28,57,0.4)',
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Box
-              sx={{
-                width: 26,
-                height: 26,
-                borderRadius: 1.5,
-                background: 'linear-gradient(135deg,#6e56cf,#ff7a59)',
-              }}
-            />
-            <Typography fontWeight={800} letterSpacing="-0.02em" color={INK}>
-              AgencyOS
-            </Typography>
-          </Stack>
+          <Logo height={30} />
 
           <Stack direction="row" spacing={3} sx={{ display: { xs: 'none', md: 'flex' } }}>
             {NAV_LINKS.map((link) => (
@@ -62,8 +52,8 @@ export function LandingNavbar() {
 
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box
-              component="a"
-              href="#get-started"
+              component={RouterLink}
+              to="/login"
               sx={{
                 display: { xs: 'none', sm: 'block' },
                 color: INK,
@@ -76,7 +66,7 @@ export function LandingNavbar() {
             >
               Sign in
             </Box>
-            <Button href="#get-started" disableElevation sx={darkButtonSx}>
+            <Button component={RouterLink} to="/register" variant="contained">
               Sign up
             </Button>
           </Stack>

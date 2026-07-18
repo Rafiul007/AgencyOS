@@ -17,6 +17,11 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckIcon from '@mui/icons-material/CheckCircleOutline';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
+import SettingsIcon from '@mui/icons-material/SettingsOutlined';
+import BellIcon from '@mui/icons-material/NotificationsNoneOutlined';
+import SearchIcon from '@mui/icons-material/SearchOutlined';
+import LogoutIcon from '@mui/icons-material/LogoutOutlined';
+import HelpIcon from '@mui/icons-material/HelpOutlineOutlined';
 
 export const Icons = {
   Add: AddIcon,
@@ -36,6 +41,11 @@ export const Icons = {
   Check: CheckIcon,
   ExpandMore: ExpandMoreIcon,
   Close: CloseIcon,
+  Settings: SettingsIcon,
+  Bell: BellIcon,
+  Search: SearchIcon,
+  Logout: LogoutIcon,
+  Help: HelpIcon,
 } as const;
 
 export type IconName = keyof typeof Icons;

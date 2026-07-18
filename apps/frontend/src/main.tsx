@@ -8,6 +8,7 @@ import { App } from './App';
 import { store } from './lib/store';
 import { queryClient } from './lib/queryClient';
 import { theme } from './lib/theme';
+import { AuthProvider } from './features/auth/AuthProvider';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -16,7 +17,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <BrowserRouter>
-            <App />
+            <AuthProvider>
+              <App />
+            </AuthProvider>
           </BrowserRouter>
         </ThemeProvider>
       </QueryClientProvider>

@@ -16,24 +16,5 @@ export const CTA_GRADIENT = 'linear-gradient(135deg, #2b2d64 0%, #4b3fa7 60%, #6
 export const SOFT_SHADOW = '0 18px 40px -18px rgba(27,28,57,0.28)';
 export const CARD_SHADOW = '0 8px 24px -12px rgba(27,28,57,0.18)';
 
-// Reusable dark / light pill button styles.
-export const darkButtonSx = {
-  bgcolor: INK,
-  color: '#fff',
-  borderRadius: 999,
-  textTransform: 'none',
-  px: 2.5,
-  fontWeight: 600,
-  '&:hover': { bgcolor: '#26284d' },
-} as const;
-
-export const lightButtonSx = {
-  bgcolor: '#fff',
-  color: INK,
-  borderRadius: 999,
-  textTransform: 'none',
-  px: 2.5,
-  fontWeight: 600,
-  border: '1px solid rgba(27,28,57,0.12)',
-  '&:hover': { bgcolor: '#f5f6fb' },
-} as const;
+// Button styling now lives in the MUI theme (see lib/theme.ts):
+//   variant="contained" → dark ink pill, variant="outlined" → white pill.

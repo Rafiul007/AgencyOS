@@ -1,5 +1,6 @@
 import { Box, Container, Stack, Typography } from '@mui/material';
-import { INK, INK_SOFT } from '../constant/landingTheme';
+import { Logo } from '@/components/Logo';
+import { INK_SOFT } from '../constant/landingTheme';
 
 export function LandingFooter() {
   return (
@@ -11,19 +12,7 @@ export function LandingFooter() {
           justifyContent="space-between"
           alignItems="center"
         >
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Box
-              sx={{
-                width: 22,
-                height: 22,
-                borderRadius: 1.25,
-                background: 'linear-gradient(135deg,#6e56cf,#ff7a59)',
-              }}
-            />
-            <Typography fontWeight={800} color={INK}>
-              AgencyOS
-            </Typography>
-          </Stack>
+          <Logo height={26} />
           <Typography variant="body2" color={INK_SOFT}>
             © {new Date().getFullYear()} AgencyOS. One workspace for companies and marketing
             agencies.

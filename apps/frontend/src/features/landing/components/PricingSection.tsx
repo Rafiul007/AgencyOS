@@ -1,4 +1,5 @@
 import { Box, Button, Chip, Container, Paper, Stack, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import { Icons } from '@/lib/iconHash';
 import { Reveal } from '@/components/Reveal';
 import { PRICING_PLAN } from '../constant/landingContent';
@@ -79,7 +80,8 @@ export function PricingSection() {
               <Box sx={{ flexGrow: 1 }} />
 
               <Button
-                href="#get-started"
+                component={RouterLink}
+                to="/register"
                 fullWidth
                 size="large"
                 disableElevation

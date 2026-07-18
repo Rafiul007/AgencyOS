@@ -1,0 +1,16 @@
+<svg width="252" height="64" viewBox="0 0 252 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="agFull" x1="0" y1="0" x2="242" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5b2ea6" />
+      <stop offset="0.55" stop-color="#a13d8f" />
+      <stop offset="1" stop-color="#ff7a59" />
+    </linearGradient>
+  </defs>
+  <g stroke="url(#agFull)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M15 53 L29 12 L43 53" />
+    <path d="M20 40 H38" />
+    <ellipse cx="29" cy="33" rx="25" ry="11.5" transform="rotate(-20 29 33)" />
+  </g>
+  <circle cx="6.5" cy="30" r="2.8" fill="url(#agFull)" />
+  <text x="64" y="43" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="33" font-weight="800" letter-spacing="-1.2" fill="url(#agFull)">AgencyOS</text>
+</svg>

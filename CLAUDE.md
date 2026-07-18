@@ -394,3 +394,8 @@ API processes, backing services (Postgres, Redis) as attachable resources. This 
 
 Early stage — product overview defined, stack and principles chosen. Scaffolding and modules to be built.
 Update this file as the project takes shape.
+
+# DB Rules
+
+- always run migration after DB table changes. and tell me other instruction for that.
+- maintainin normalization in the DB table.

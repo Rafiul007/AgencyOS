@@ -8,13 +8,17 @@ import * as bcrypt from 'bcryptjs';
 import { MAX_SUB_USERS, UserRole } from '@agencyos/shared';
 import type { IAuthUser } from '@agencyos/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import { OnboardingService } from '../onboarding/onboarding.service';
 import { CreateSubUserDto } from './dto/create-sub-user.dto';
 
 const BCRYPT_ROUNDS = 10;
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly onboarding: OnboardingService,
+  ) {}
 
   /** Creates a sub-user within the caller's tenant, enforcing the per-account limit. */
   async createSubUser(tenantId: string, dto: CreateSubUserDto): Promise<IAuthUser> {
@@ -54,6 +58,9 @@ export class UsersService {
         role: dto.role,
       },
     });
+
+    // Adding a teammate completes the "invite your team" onboarding step.
+    await this.onboarding.markDone(tenantId, 'invite_team');
 
     return this.toAuthUser(user);
   }

@@ -20,6 +20,7 @@ export function RhfTextField({ name, ...rest }: RhfTextFieldProps) {
           error={Boolean(fieldState.error)}
           helperText={fieldState.error?.message}
           fullWidth
+          size="small"
           {...rest}
         />
       )}

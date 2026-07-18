@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { RhfTextField } from '@/components/rhf/RhfTextField';
 import { Icons } from '@/lib/iconHash';
 import { DEMO_FORM_FIELDS } from '../constant/landingContent';
-import { darkButtonSx, INK, INK_SOFT } from '../constant/landingTheme';
+import { INK, INK_SOFT } from '../constant/landingTheme';
 
 const demoSchema = z.object({
   name: z.string().min(2, 'Please enter your name'),
@@ -84,7 +84,7 @@ export function RequestDemoModal({ open, onClose }: { open: boolean; onClose: ()
             <Typography color={INK_SOFT}>
               Your demo request has been received. Our team will reach out shortly.
             </Typography>
-            <Button onClick={handleClose} disableElevation sx={darkButtonSx}>
+            <Button onClick={handleClose} variant="contained">
               Done
             </Button>
           </Stack>
@@ -105,9 +105,9 @@ export function RequestDemoModal({ open, onClose }: { open: boolean; onClose: ()
                 <Button
                   type="submit"
                   size="large"
-                  disableElevation
+                  variant="contained"
                   disabled={methods.formState.isSubmitting}
-                  sx={{ ...darkButtonSx, mt: 1 }}
+                  sx={{ mt: 1 }}
                 >
                   Request demo
                 </Button>

@@ -7,7 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { MAX_SUB_USERS, TRIAL_DAYS } from '@agencyos/shared';
+import { MAX_SUB_USERS, ONBOARDING_TASKS, TRIAL_DAYS } from '@agencyos/shared';
 import type { IAuthResponse, IAuthTokens, IAuthUser } from '@agencyos/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { durationToMs } from '../../common/utils/duration';
@@ -50,6 +50,14 @@ export class AuthService {
               maxSubUsers: MAX_SUB_USERS,
               currentPeriodEnd: trialEnd,
             },
+          },
+          // Seed the getting-started checklist so the workspace has onboarding steps.
+          onboardingTasks: {
+            create: ONBOARDING_TASKS.map((task) => ({
+              key: task.key,
+              title: task.title,
+              order: task.order,
+            })),
           },
         },
       });

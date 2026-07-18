@@ -5,6 +5,7 @@ import { validateEnv } from './config/env.validation';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { HealthModule } from './modules/health/health.module';
 
 @Module({
@@ -21,6 +22,7 @@ import { HealthModule } from './modules/health/health.module';
     PrismaModule,
     AuthModule,
     UsersModule,
+    OnboardingModule,
     HealthModule,
   ],
 })

@@ -2,7 +2,7 @@ import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { FeatureCard } from './FeatureCard';
 import { Reveal } from '@/components/Reveal';
 import { LANDING_FEATURES } from '../constant/landingContent';
-import { INK, INK_SOFT, lightButtonSx } from '../constant/landingTheme';
+import { INK, INK_SOFT } from '../constant/landingTheme';
 
 export function BenefitsSection() {
   return (
@@ -33,7 +33,7 @@ export function BenefitsSection() {
                 can run on.
               </Typography>
             </Box>
-            <Button href="#get-started" sx={lightButtonSx}>
+            <Button href="#features" variant="outlined">
               Learn more
             </Button>
           </Stack>

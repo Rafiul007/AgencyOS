@@ -42,3 +42,35 @@ export interface IAuthResponse {
   user: IAuthUser;
   tokens: IAuthTokens;
 }
+
+export enum OnboardingTaskStatus {
+  PENDING = 'PENDING',
+  DONE = 'DONE',
+  SKIPPED = 'SKIPPED',
+}
+
+export interface ITenantSettings {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+  timezone: string;
+  currency: string;
+  businessType: string | null;
+  onboardingCompletedAt: string | null;
+}
+
+export interface IOnboardingTask {
+  id: string;
+  key: string;
+  title: string;
+  status: OnboardingTaskStatus;
+  order: number;
+  completedAt: string | null;
+}
+
+export interface IOnboardingState {
+  tenant: ITenantSettings;
+  tasks: IOnboardingTask[];
+  /** 0–100, based on tasks that are DONE. */
+  progress: number;
+}

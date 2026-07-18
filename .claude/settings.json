@@ -24,7 +24,12 @@
       "Bash(docker compose *)",
       "Bash(gh auth *)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(pnpm --filter @agencyos/frontend exec vite build)",
+      "Bash(curl -s -X POST http://localhost:4000/api/v1/auth/register -H \"Content-Type: application/json\" -d '{\"companyName\":\"Diag Co\",\"name\":\"Diag User\",\"email\":\"diag+test@example.com\",\"password\":\"password123\"}')",
+      "Bash(pnpm --filter @agencyos/backend exec prisma migrate status)",
+      "Bash(pnpm --filter @agencyos/backend exec prisma migrate dev --name init)",
+      "Bash(curl -s -X POST http://localhost:4000/api/v1/auth/register -H \"Content-Type: application/json\" -d '{\"companyName\":\"Sultan Overseas\",\"name\":\"M Rafiul Faisal\",\"email\":\"verify+1@example.com\",\"password\":\"password123\"}')"
     ]
   }
 }
