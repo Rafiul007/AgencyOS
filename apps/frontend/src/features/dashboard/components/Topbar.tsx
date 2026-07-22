@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   Avatar,
   Box,
-  Chip,
   Divider,
   IconButton,
   InputBase,
@@ -18,6 +17,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { logoutRequest } from '@/features/auth/api';
 import { setGuest } from '@/features/auth/authSlice';
 import { brand } from '@/lib/theme';
+import { SubscriptionBadge } from '@/features/subscription/components/SubscriptionBadge';
 
 export function Topbar({ title }: { title: string }) {
   const navigate = useNavigate();
@@ -72,13 +72,7 @@ export function Topbar({ title }: { title: string }) {
 
       <Box sx={{ flexGrow: 1 }} />
 
-      <Chip
-        label="Trial · 14 days left"
-        size="small"
-        color="secondary"
-        variant="outlined"
-        sx={{ display: { xs: 'none', md: 'flex' } }}
-      />
+      <SubscriptionBadge />
       <IconButton size="small">
         <Icons.Bell fontSize="small" />
       </IconButton>

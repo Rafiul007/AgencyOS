@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/apiClient';
-import type { IOnboardingState, ITenantSettings } from '@agencyos/shared';
+import type { IOnboardingState, ITenantSettings, QuoteTemplate } from '@agencyos/shared';
 
 export interface IWorkspaceInput {
   name: string;
@@ -25,6 +25,16 @@ export async function updateWorkspaceSettings(input: IWorkspaceInput): Promise<I
 
 export async function updateOwnerProfile(input: IProfileInput): Promise<void> {
   await apiClient.patch('/onboarding/profile', input);
+}
+
+/** Sets the tenant's active quotation template (used as the default for new quotes). */
+export async function updateDefaultQuoteTemplate(
+  template: QuoteTemplate,
+): Promise<ITenantSettings> {
+  const { data } = await apiClient.patch<ITenantSettings>('/onboarding/quote-template', {
+    defaultQuoteTemplate: template,
+  });
+  return data;
 }
 
 export async function completeOnboardingStep(key: string): Promise<IOnboardingState> {

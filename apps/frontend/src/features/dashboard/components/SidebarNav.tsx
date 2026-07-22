@@ -3,13 +3,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Icons } from '@/lib/iconHash';
 import { useAppSelector } from '@/lib/hooks';
 import { brand } from '@/lib/theme';
-import { SIDEBAR_SECTIONS } from '../constant/navigation';
+import { getActiveModule } from '../constant/navigation';
 import type { INavItem } from '../constant/navigation';
 
 const SIDEBAR_WIDTH = 244;
 
 export function SidebarNav() {
   const user = useAppSelector((s) => s.auth.user);
+  const location = useLocation();
+  const activeModule = getActiveModule(location.pathname);
 
   return (
     <Box
@@ -25,14 +27,17 @@ export function SidebarNav() {
         overflowY: 'auto',
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 1, mb: 3 }}>
+      <Stack sx={{ px: 1, mb: 3 }}>
         <Typography fontWeight={800} color={brand.ink} noWrap>
           {user?.name ? `${user.name.split(' ')[0]}’s workspace` : 'Workspace'}
+        </Typography>
+        <Typography variant="caption" color={brand.inkSoft}>
+          {activeModule.label}
         </Typography>
       </Stack>
 
       <Stack spacing={2.5}>
-        {SIDEBAR_SECTIONS.map((section) => (
+        {activeModule.sections.map((section) => (
           <Box key={section.title}>
             <Typography
               variant="caption"
@@ -56,7 +61,7 @@ function SidebarItem({ item }: { item: INavItem }) {
   const navigate = useNavigate();
   const location = useLocation();
   const Icon = Icons[item.icon];
-  const active = Boolean(item.to && location.pathname === item.to && item.key === 'overview');
+  const active = Boolean(item.to && location.pathname === item.to);
 
   return (
     <Stack

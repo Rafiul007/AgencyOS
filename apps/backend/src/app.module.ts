@@ -6,6 +6,12 @@ import { PrismaModule } from './modules/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
+import { ClientsModule } from './modules/clients/clients.module';
+import { ContactsModule } from './modules/contacts/contacts.module';
+import { SubscriptionModule } from './modules/subscription/subscription.module';
+import { QuotationsModule } from './modules/quotations/quotations.module';
+import { InvoicesModule } from './modules/invoices/invoices.module';
 import { HealthModule } from './modules/health/health.module';
 
 @Module({
@@ -23,6 +29,12 @@ import { HealthModule } from './modules/health/health.module';
     AuthModule,
     UsersModule,
     OnboardingModule,
+    CatalogModule,
+    ClientsModule,
+    ContactsModule,
+    SubscriptionModule,
+    QuotationsModule,
+    InvoicesModule,
     HealthModule,
   ],
 })

@@ -29,7 +29,27 @@
       "Bash(curl -s -X POST http://localhost:4000/api/v1/auth/register -H \"Content-Type: application/json\" -d '{\"companyName\":\"Diag Co\",\"name\":\"Diag User\",\"email\":\"diag+test@example.com\",\"password\":\"password123\"}')",
       "Bash(pnpm --filter @agencyos/backend exec prisma migrate status)",
       "Bash(pnpm --filter @agencyos/backend exec prisma migrate dev --name init)",
-      "Bash(curl -s -X POST http://localhost:4000/api/v1/auth/register -H \"Content-Type: application/json\" -d '{\"companyName\":\"Sultan Overseas\",\"name\":\"M Rafiul Faisal\",\"email\":\"verify+1@example.com\",\"password\":\"password123\"}')"
+      "Bash(curl -s -X POST http://localhost:4000/api/v1/auth/register -H \"Content-Type: application/json\" -d '{\"companyName\":\"Sultan Overseas\",\"name\":\"M Rafiul Faisal\",\"email\":\"verify+1@example.com\",\"password\":\"password123\"}')",
+      "Bash(pnpm --filter @agencyos/backend exec prisma migrate dev --name catalog --skip-generate)",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 4000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c.OwningProcess | Select-Object -Unique | ForEach-Object { try { Stop-Process -Id $_ -Force -ErrorAction Stop; \"Stopped PID $_\" } catch {} } } else { \"nothing listening on 4000\" })",
+      "Bash(pnpm --filter @agencyos/backend exec prisma migrate dev --name clients --skip-generate)",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 4000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c.OwningProcess | Select-Object -Unique | ForEach-Object { try { Stop-Process -Id $_ -Force -ErrorAction Stop; \"Stopped PID $_\" } catch {} } } else { \"nothing on 4000\" })",
+      "Bash(pnpm --filter @agencyos/backend exec prisma generate)",
+      "Bash(node -e 'const {PrismaClient}=require\\('\\\\''@prisma/client'\\\\''\\); const p=new PrismaClient\\(\\); p.$queryRaw`SELECT 1`.then\\(\\(\\)=>{console.log\\('\\\\''DB OK'\\\\''\\);return p.$disconnect\\(\\)}\\).catch\\(e=>{console.log\\('\\\\''DB FAIL:'\\\\'', e.message.split\\('\\\\''\\\\n'\\\\''\\)[0]\\); process.exit\\(0\\)}\\)')",
+      "Bash(pnpm prisma *)",
+      "PowerShell(Get-Process node -ErrorAction SilentlyContinue | Select-Object Id, StartTime, @{n='Cmd';e={\\(Get-CimInstance Win32_Process -Filter \"ProcessId=$\\($_.Id\\)\"\\).CommandLine}} | Format-Table -Wrap -AutoSize)",
+      "PowerShell(Stop-Process -Id 12148,42832 -Force -ErrorAction SilentlyContinue)",
+      "Bash(npx tsc *)",
+      "Bash(pnpm -r lint)",
+      "Bash(pnpm --filter backend start:dev)",
+      "Bash(curl -s http://localhost:4000/api/v1/health)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4000/api/v1/quotations)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -X PATCH http://localhost:4000/api/v1/quotations/abc/template -H \"Content-Type: application/json\" -d '{\"template\":\"MODERN\"}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:4000/api/v1/onboarding)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -X PATCH http://localhost:4000/api/v1/onboarding/quote-template -H \"Content-Type: application/json\" -d '{\"defaultQuoteTemplate\":\"MODERN\"}')",
+      "Bash(pnpm --filter frontend lint)",
+      "Bash(curl -s -o /dev/null -w \"health=%{http_code}\\\\n\" http://localhost:4000/api/v1/health)",
+      "Bash(pnpm --filter backend lint)"
     ]
   }
 }

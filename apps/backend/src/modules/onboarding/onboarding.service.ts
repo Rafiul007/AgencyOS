@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { OnboardingTaskStatus } from '@agencyos/shared';
-import type { IOnboardingState, ITenantSettings } from '@agencyos/shared';
+import type { IOnboardingState, ITenantSettings, QuoteTemplate } from '@agencyos/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -46,6 +46,18 @@ export class OnboardingService {
     });
     // Providing workspace details completes the workspace step.
     await this.markDone(tenantId, 'setup_workspace');
+    return this.toSettings(tenant);
+  }
+
+  /** Sets the tenant's active quotation template. Kept separate so it has no onboarding side-effects. */
+  async setDefaultQuoteTemplate(
+    tenantId: string,
+    template: QuoteTemplate,
+  ): Promise<ITenantSettings> {
+    const tenant = await this.prisma.tenant.update({
+      where: { id: tenantId },
+      data: { defaultQuoteTemplate: template },
+    });
     return this.toSettings(tenant);
   }
 
@@ -104,6 +116,7 @@ export class OnboardingService {
     timezone: string;
     currency: string;
     businessType: string | null;
+    defaultQuoteTemplate: string;
     onboardingCompletedAt: Date | null;
   }): ITenantSettings {
     return {
@@ -113,6 +126,7 @@ export class OnboardingService {
       timezone: tenant.timezone,
       currency: tenant.currency,
       businessType: tenant.businessType,
+      defaultQuoteTemplate: tenant.defaultQuoteTemplate as QuoteTemplate,
       onboardingCompletedAt: tenant.onboardingCompletedAt
         ? tenant.onboardingCompletedAt.toISOString()
         : null,
