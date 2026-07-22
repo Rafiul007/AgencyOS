@@ -399,3 +399,5 @@ Update this file as the project takes shape.
 
 - always run migration after DB table changes. and tell me other instruction for that.
 - maintainin normalization in the DB table.
+
+-always write form validation for every form.
