@@ -3,13 +3,16 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
+import type { User } from '@prisma/client';
 import { MAX_SUB_USERS, UserRole } from '@agencyos/shared';
-import type { IAuthUser } from '@agencyos/shared';
+import type { IAuthUser, ITeamMember } from '@agencyos/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { OnboardingService } from '../onboarding/onboarding.service';
 import { CreateSubUserDto } from './dto/create-sub-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 const BCRYPT_ROUNDS = 10;
 
@@ -65,13 +68,87 @@ export class UsersService {
     return this.toAuthUser(user);
   }
 
-  /** Lists all users in the caller's tenant (tenant-scoped). */
-  async listTenantUsers(tenantId: string): Promise<IAuthUser[]> {
+  /** Lists all team members in the caller's tenant (tenant-scoped). */
+  async listTenantUsers(tenantId: string): Promise<ITeamMember[]> {
     const users = await this.prisma.user.findMany({
       where: { tenantId },
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
     });
-    return users.map((u) => this.toAuthUser(u));
+    return users.map((u) => this.toTeamMember(u));
+  }
+
+  /** Updates a teammate's role and/or active state, guarding the Owner and self. */
+  async updateMember(
+    tenantId: string,
+    actingUserId: string,
+    targetId: string,
+    dto: UpdateUserDto,
+  ): Promise<ITeamMember> {
+    const target = await this.getOwned(tenantId, targetId);
+    if (target.role === UserRole.OWNER) {
+      throw new ForbiddenException({
+        message: 'The Owner cannot be modified',
+        error: 'OWNER_LOCKED',
+      });
+    }
+    if (target.id === actingUserId) {
+      throw new BadRequestException({
+        message: 'You cannot change your own role or status',
+        error: 'CANNOT_EDIT_SELF',
+      });
+    }
+    if (dto.role === UserRole.OWNER) {
+      throw new BadRequestException({
+        message: 'Cannot promote a member to Owner',
+        error: 'INVALID_ROLE',
+      });
+    }
+    const updated = await this.prisma.user.update({
+      where: { id: targetId },
+      data: {
+        role: dto.role ?? undefined,
+        isActive: dto.isActive ?? undefined,
+      },
+    });
+    return this.toTeamMember(updated);
+  }
+
+  /** Removes a teammate, guarding the Owner and self. */
+  async removeMember(tenantId: string, actingUserId: string, targetId: string): Promise<void> {
+    const target = await this.getOwned(tenantId, targetId);
+    if (target.role === UserRole.OWNER) {
+      throw new ForbiddenException({
+        message: 'The Owner cannot be removed',
+        error: 'OWNER_LOCKED',
+      });
+    }
+    if (target.id === actingUserId) {
+      throw new BadRequestException({
+        message: 'You cannot remove yourself',
+        error: 'CANNOT_REMOVE_SELF',
+      });
+    }
+    await this.prisma.user.delete({ where: { id: targetId } });
+  }
+
+  private async getOwned(tenantId: string, id: string): Promise<User> {
+    const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
+    if (!user) {
+      throw new NotFoundException({ message: 'Team member not found', error: 'USER_NOT_FOUND' });
+    }
+    return user;
+  }
+
+  private toTeamMember(user: User): ITeamMember {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role as ITeamMember['role'],
+      isActive: user.isActive,
+      lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
+      createdAt: user.createdAt.toISOString(),
+    };
   }
 
   private toAuthUser(user: {
