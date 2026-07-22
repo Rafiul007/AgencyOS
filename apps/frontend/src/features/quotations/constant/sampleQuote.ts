@@ -1,0 +1,57 @@
+import { QuoteStatus } from '@agencyos/shared';
+import type { IQuoteDocumentData } from '../interface';
+
+/** A realistic sample quote used to preview templates (gallery thumbnails, settings). */
+export const SAMPLE_QUOTE: IQuoteDocumentData = {
+  number: 'AOS-2026-0042',
+  agencyName: 'Your Agency',
+  clientName: 'Acme Corporation',
+  status: QuoteStatus.SENT,
+  currency: 'BDT',
+  issueDate: '2026-07-22T00:00:00.000Z',
+  expiresAt: '2026-08-21T00:00:00.000Z',
+  note: 'Thank you for the opportunity. We look forward to working together.',
+  terms: '50% advance to begin, balance on delivery.',
+  taxRatePercent: 15,
+  discountMinor: 500000,
+  subtotalMinor: 15000000,
+  taxMinor: 2175000,
+  totalMinor: 16675000,
+  signerName: null,
+  respondedAt: null,
+  lineItems: [
+    {
+      id: 's1',
+      catalogItemId: null,
+      description: 'Brand strategy & identity',
+      unit: 'FIXED',
+      quantity: 1,
+      unitPriceMinor: 8000000,
+      lineDiscountMinor: 0,
+      lineTotalMinor: 8000000,
+      sortOrder: 0,
+    },
+    {
+      id: 's2',
+      catalogItemId: null,
+      description: 'Social media management',
+      unit: 'MONTHLY',
+      quantity: 3,
+      unitPriceMinor: 2000000,
+      lineDiscountMinor: 0,
+      lineTotalMinor: 6000000,
+      sortOrder: 1,
+    },
+    {
+      id: 's3',
+      catalogItemId: null,
+      description: 'Launch campaign ads',
+      unit: 'FIXED',
+      quantity: 1,
+      unitPriceMinor: 1000000,
+      lineDiscountMinor: 0,
+      lineTotalMinor: 1000000,
+      sortOrder: 2,
+    },
+  ],
+};

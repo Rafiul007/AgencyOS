@@ -6,25 +6,20 @@ import {
   Chip,
   CircularProgress,
   Container,
-  Divider,
   Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   TextField,
   Typography,
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { IApiError, IQuote } from '@agencyos/shared';
-import { formatMinor } from '@/lib/money';
 import { downloadQuotePdf } from '@/lib/quotePdf';
 import { PAGE_GRADIENT, INK, INK_SOFT } from '@/features/landing/constant/landingTheme';
 import { approvePublicQuote, fetchPublicQuote, rejectPublicQuote } from './api';
 import { STATUS_COLORS, STATUS_LABELS } from './constant/quoteOptions';
+import { QuoteDocument } from './components/QuoteDocument';
+import { publicQuoteToDocument } from './documentData';
 
 function fmtDate(iso: string | null): string {
   return iso ? new Date(iso).toLocaleDateString('en-GB') : '—';
@@ -91,107 +86,15 @@ export function PublicQuotePage() {
           />
         </Stack>
 
+        {/* The quotation itself, rendered in the tenant's chosen template. */}
+        <Box sx={{ boxShadow: '0 18px 40px -18px rgba(27,28,57,0.28)', borderRadius: 2 }}>
+          <QuoteDocument data={publicQuoteToDocument(quote)} template={quote.template} />
+        </Box>
+
         <Paper
           elevation={0}
-          sx={{
-            p: { xs: 3, md: 4 },
-            borderRadius: 4,
-            boxShadow: '0 18px 40px -18px rgba(27,28,57,0.28)',
-          }}
+          sx={{ p: { xs: 3, md: 4 }, borderRadius: 4, mt: 3, border: 1, borderColor: 'divider' }}
         >
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            justifyContent="space-between"
-            spacing={2}
-            sx={{ mb: 3 }}
-          >
-            <Box>
-              <Typography variant="h4" fontWeight={800} color={INK}>
-                Quotation {quote.number}
-              </Typography>
-              <Typography color={INK_SOFT}>For {quote.clientName ?? 'you'}</Typography>
-            </Box>
-            <Stack spacing={0.5} sx={{ textAlign: { sm: 'right' } }}>
-              <Typography variant="body2" color={INK_SOFT}>
-                Issued {fmtDate(quote.issueDate)}
-              </Typography>
-              <Typography variant="body2" color={INK_SOFT}>
-                Valid till {fmtDate(quote.expiresAt)}
-              </Typography>
-            </Stack>
-          </Stack>
-
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Description</TableCell>
-                <TableCell align="center">Qty</TableCell>
-                <TableCell align="right">Unit</TableCell>
-                <TableCell align="right">Amount</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {quote.lineItems.map((line) => (
-                <TableRow key={line.id}>
-                  <TableCell>{line.description}</TableCell>
-                  <TableCell align="center">{line.quantity}</TableCell>
-                  <TableCell align="right">
-                    {formatMinor(line.unitPriceMinor, quote.currency)}
-                  </TableCell>
-                  <TableCell align="right">
-                    {formatMinor(line.lineTotalMinor, quote.currency)}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          <Stack alignItems="flex-end" sx={{ mt: 2 }}>
-            <Box sx={{ width: { xs: '100%', sm: 280 } }}>
-              <Row label="Subtotal" value={formatMinor(quote.subtotalMinor, quote.currency)} />
-              {quote.discountMinor > 0 && (
-                <Row
-                  label="Discount"
-                  value={`- ${formatMinor(quote.discountMinor, quote.currency)}`}
-                />
-              )}
-              {quote.taxMinor > 0 && (
-                <Row
-                  label={`VAT (${quote.taxRatePercent}%)`}
-                  value={formatMinor(quote.taxMinor, quote.currency)}
-                />
-              )}
-              <Divider sx={{ my: 1 }} />
-              <Stack direction="row" justifyContent="space-between">
-                <Typography fontWeight={800} color={INK}>
-                  Total
-                </Typography>
-                <Typography fontWeight={800} color={INK}>
-                  {formatMinor(quote.totalMinor, quote.currency)}
-                </Typography>
-              </Stack>
-            </Box>
-          </Stack>
-
-          {quote.note && (
-            <Box sx={{ mt: 3 }}>
-              <Typography fontWeight={700} color={INK}>
-                Note
-              </Typography>
-              <Typography color={INK_SOFT}>{quote.note}</Typography>
-            </Box>
-          )}
-          {quote.terms && (
-            <Box sx={{ mt: 2 }}>
-              <Typography fontWeight={700} color={INK}>
-                Terms & conditions
-              </Typography>
-              <Typography color={INK_SOFT}>{quote.terms}</Typography>
-            </Box>
-          )}
-
-          <Divider sx={{ my: 3 }} />
-
           <Button
             variant="outlined"
             onClick={() => downloadQuotePdf(quote as unknown as IQuote, quote.agencyName)}
@@ -278,14 +181,5 @@ export function PublicQuotePage() {
         </Typography>
       </Container>
     </Box>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <Stack direction="row" justifyContent="space-between" sx={{ py: 0.5 }}>
-      <Typography color={INK_SOFT}>{label}</Typography>
-      <Typography color={INK}>{value}</Typography>
-    </Stack>
   );
 }

@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/apiClient';
-import type { IPublicQuote, IQuote, QuoteStatus } from '@agencyos/shared';
+import type { IPublicQuote, IQuote, QuoteStatus, QuoteTemplate } from '@agencyos/shared';
 
 export interface IQuoteLineInput {
   catalogItemId?: string | null;
@@ -12,6 +12,7 @@ export interface IQuoteLineInput {
 
 export interface ICreateQuoteInput {
   clientId?: string;
+  customerName?: string;
   expiresAt?: string;
   note?: string;
   terms?: string;
@@ -47,6 +48,11 @@ export async function sendQuote(id: string): Promise<IQuote> {
 
 export async function updateQuoteStatus(id: string, status: QuoteStatus): Promise<IQuote> {
   const { data } = await apiClient.patch<IQuote>(`/quotations/${id}/status`, { status });
+  return data;
+}
+
+export async function updateQuoteTemplate(id: string, template: QuoteTemplate): Promise<IQuote> {
+  const { data } = await apiClient.patch<IQuote>(`/quotations/${id}/template`, { template });
   return data;
 }
 

@@ -14,6 +14,7 @@ import type { IQuote } from '@agencyos/shared';
 import { QuotationsService } from './quotations.service';
 import { CreateQuoteDto } from './dto/create-quote.dto';
 import { UpdateQuoteStatusDto } from './dto/update-status.dto';
+import { UpdateQuoteTemplateDto } from './dto/update-template.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -55,6 +56,16 @@ export class QuotationsController {
   @Post(':id/send')
   send(@CurrentUser('tenantId') tenantId: string, @Param('id') id: string): Promise<IQuote> {
     return this.quotationsService.send(tenantId, id);
+  }
+
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT)
+  @Patch(':id/template')
+  updateTemplate(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: UpdateQuoteTemplateDto,
+  ): Promise<IQuote> {
+    return this.quotationsService.updateTemplate(tenantId, id, dto.template);
   }
 
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT)

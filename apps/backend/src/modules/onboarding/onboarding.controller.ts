@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import type { IOnboardingState, ITenantSettings } from '@agencyos/shared';
 import { OnboardingService } from './onboarding.service';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
+import { SetQuoteTemplateDto } from './dto/set-quote-template.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -20,6 +21,14 @@ export class OnboardingController {
     @Body() dto: UpdateSettingsDto,
   ): Promise<ITenantSettings> {
     return this.onboardingService.updateSettings(tenantId, dto);
+  }
+
+  @Patch('quote-template')
+  setQuoteTemplate(
+    @CurrentUser('tenantId') tenantId: string,
+    @Body() dto: SetQuoteTemplateDto,
+  ): Promise<ITenantSettings> {
+    return this.onboardingService.setDefaultQuoteTemplate(tenantId, dto.defaultQuoteTemplate);
   }
 
   @Patch('profile')

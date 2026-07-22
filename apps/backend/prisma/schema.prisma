@@ -61,6 +61,71 @@ enum QuoteStatus {
   CONVERTED
 }
 
+enum ContactStage {
+  NEW
+  CONTACTED
+  INTERESTED
+  QUALIFIED
+  WON
+  LOST
+}
+
+enum ContactActivityType {
+  CALL
+  EMAIL
+  WHATSAPP
+  SMS
+  AD
+  MEETING
+  NOTE
+}
+
+enum ContactActivityOutcome {
+  CONNECTED
+  NO_ANSWER
+  INTERESTED
+  NOT_INTERESTED
+  FOLLOW_UP
+  BOUNCED
+  DONE
+}
+
+enum QuoteTemplate {
+  CLASSIC
+  MODERN
+  MINIMALIST
+  PROFESSIONAL
+  BOLD
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  VOID
+}
+
+enum PaymentMethod {
+  CASH
+  BKASH
+  NAGAD
+  ROCKET
+  BANK_TRANSFER
+  CHEQUE
+  CARD
+  OTHER
+}
+
+enum InvoiceEventType {
+  CREATED
+  SENT
+  VIEWED
+  PAYMENT_RECORDED
+  PAID
+  VOIDED
+}
+
 enum QuoteEventType {
   CREATED
   SENT
@@ -80,6 +145,7 @@ model Tenant {
   timezone             String    @default("Asia/Dhaka")
   currency             String    @default("BDT")
   businessType         String?
+  defaultQuoteTemplate QuoteTemplate @default(CLASSIC)
   onboardingCompletedAt DateTime?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
@@ -90,6 +156,10 @@ model Tenant {
   catalogItems    CatalogItem[]
   clients         Client[]
   quotes          Quote[]
+  contacts        Contact[]
+  contactActivities ContactActivity[]
+  invoices        Invoice[]
+  payments        Payment[]
 
   @@map("tenants")
 }
@@ -144,6 +214,10 @@ model User {
 
   tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   refreshTokens RefreshToken[]
+  assignedContacts  Contact[]         @relation("ContactAssignee")
+  contactActivities ContactActivity[] @relation("ActivityAuthor")
+  invoicesCreated   Invoice[]         @relation("InvoiceCreatedBy")
+  paymentsRecorded  Payment[]         @relation("PaymentRecordedBy")
 
   @@index([tenantId])
   @@map("users")
@@ -165,8 +239,9 @@ model CatalogItem {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  quoteLines QuoteLineItem[]
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  quoteLines   QuoteLineItem[]
+  invoiceLines InvoiceLineItem[]
 
   @@index([tenantId])
   @@index([tenantId, type])
@@ -180,7 +255,11 @@ model Quote {
   tenantId       String
   number         String
   clientId       String?
+  // Ad-hoc recipient name when the quote isn't linked to a saved client.
+  customerName   String?
   status         QuoteStatus @default(DRAFT)
+  // Per-quote template override; null falls back to the tenant's defaultQuoteTemplate.
+  template       QuoteTemplate?
   currency       String      @default("BDT")
   issueDate      DateTime    @default(now())
   expiresAt      DateTime?
@@ -207,6 +286,7 @@ model Quote {
   client    Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
   lineItems QuoteLineItem[]
   events    QuoteEvent[]
+  invoice   Invoice?
 
   @@unique([tenantId, number])
   @@index([tenantId])
@@ -248,6 +328,107 @@ model QuoteLineItem {
   @@map("quote_line_items")
 }
 
+/// A bill sent to a client. Totals mirror the quote (integer minor units). Payments are
+/// recorded manually; `amountPaidMinor` is kept in sync and the status derives from it.
+model Invoice {
+  id              String         @id @default(cuid())
+  tenantId        String
+  number          String
+  clientId        String?
+  customerName    String?
+  quoteId         String?        @unique
+  status          InvoiceStatus  @default(DRAFT)
+  currency        String         @default("BDT")
+  issueDate       DateTime       @default(now())
+  dueDate         DateTime?
+  note            String?
+  terms           String?
+  taxRatePercent  Int            @default(0)
+  discountMinor   Int            @default(0)
+  subtotalMinor   Int            @default(0)
+  taxMinor        Int            @default(0)
+  totalMinor      Int            @default(0)
+  amountPaidMinor Int            @default(0)
+  template        QuoteTemplate?
+  publicToken     String?        @unique
+  sentAt          DateTime?
+  viewedAt        DateTime?
+  paidAt          DateTime?
+  voidedAt        DateTime?
+  createdById     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  tenant    Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client    Client?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  quote     Quote?            @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  createdBy User?             @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  lineItems InvoiceLineItem[]
+  payments  Payment[]
+  events    InvoiceEvent[]
+
+  @@unique([tenantId, number])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("invoices")
+}
+
+model InvoiceLineItem {
+  id                String  @id @default(cuid())
+  invoiceId         String
+  catalogItemId     String?
+  description       String
+  unit              String  @default("FIXED")
+  quantity          Int     @default(1)
+  unitPriceMinor    Int     @default(0)
+  lineDiscountMinor Int     @default(0)
+  lineTotalMinor    Int     @default(0)
+  sortOrder         Int     @default(0)
+
+  invoice     Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  catalogItem CatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+
+  @@index([invoiceId])
+  @@map("invoice_line_items")
+}
+
+/// A single manually-recorded payment against an invoice (supports partial payments).
+model Payment {
+  id           String        @id @default(cuid())
+  tenantId     String
+  invoiceId    String
+  amountMinor  Int
+  method       PaymentMethod @default(CASH)
+  reference    String?
+  paidAt       DateTime      @default(now())
+  note         String?
+  recordedById String?
+  createdAt    DateTime      @default(now())
+
+  tenant     Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoice    Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  recordedBy User?   @relation("PaymentRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([invoiceId])
+  @@map("payments")
+}
+
+/// Timeline of everything that happened to an invoice (created, sent, paid, voided…).
+model InvoiceEvent {
+  id        String           @id @default(cuid())
+  invoiceId String
+  type      InvoiceEventType
+  message   String?
+  actor     String?
+  createdAt DateTime         @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_events")
+}
+
 /// A client (the agency's customer) that quotations, invoices, and tickets attach to.
 model Client {
   id          String       @id @default(cuid())
@@ -262,12 +443,69 @@ model Client {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  tenant Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  quotes Quote[]
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  quotes   Quote[]
+  invoices Invoice[]
+  // The prospect this client was converted from (Contacts module), if any.
+  fromContact Contact? @relation("ClientFromContact")
 
   @@index([tenantId])
   @@index([tenantId, status])
   @@map("clients")
+}
+
+/// A prospect / potential client for outbound sales. Lives in the Contacts (lead) pipeline
+/// until it converts into a Client. Outreach touches are tracked in ContactActivity.
+model Contact {
+  id                String       @id @default(cuid())
+  tenantId          String
+  name              String
+  company           String?
+  email             String?
+  mobile            String?
+  whatsapp          String?
+  source            String?
+  stage             ContactStage @default(NEW)
+  tags              String[]     @default([])
+  notes             String?
+  assignedToId      String?
+  convertedClientId String?      @unique
+  lastContactedAt   DateTime?
+  nextFollowUpAt    DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  tenant          Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignedTo      User?             @relation("ContactAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  convertedClient Client?           @relation("ClientFromContact", fields: [convertedClientId], references: [id], onDelete: SetNull)
+  activities      ContactActivity[]
+
+  @@index([tenantId])
+  @@index([tenantId, stage])
+  @@index([tenantId, assignedToId])
+  @@map("contacts")
+}
+
+/// A single outreach touch on a contact (cold call, cold email, WhatsApp, ad, note…).
+model ContactActivity {
+  id             String                  @id @default(cuid())
+  tenantId       String
+  contactId      String
+  type           ContactActivityType
+  outcome        ContactActivityOutcome?
+  note           String?
+  occurredAt     DateTime                @default(now())
+  nextFollowUpAt DateTime?
+  createdById    String?
+  createdAt      DateTime                @default(now())
+
+  tenant    Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  createdBy User?   @relation("ActivityAuthor", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([contactId])
+  @@map("contact_activities")
 }
 
 /// Hashed refresh tokens for rotation + revocation (one row per active session).

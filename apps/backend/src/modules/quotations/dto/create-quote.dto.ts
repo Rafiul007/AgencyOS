@@ -48,6 +48,12 @@ export class CreateQuoteDto {
   @IsString()
   clientId?: string;
 
+  /** Manual recipient name, used when the quote isn't linked to a saved client. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  customerName?: string;
+
   @IsOptional()
   @IsISO8601()
   expiresAt?: string;

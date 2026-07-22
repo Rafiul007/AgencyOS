@@ -22,7 +22,8 @@ export const STATUS_COLORS: Record<string, 'default' | 'info' | 'success' | 'err
 export const NEXT_STATUSES: Record<string, QuoteStatus[]> = {
   DRAFT: [QuoteStatus.SENT],
   SENT: [QuoteStatus.ACCEPTED, QuoteStatus.REJECTED, QuoteStatus.EXPIRED],
-  ACCEPTED: [QuoteStatus.CONVERTED],
+  // ACCEPTED → CONVERTED happens only via "Convert to invoice", not a manual status change.
+  ACCEPTED: [],
   REJECTED: [],
   EXPIRED: [],
   CONVERTED: [],

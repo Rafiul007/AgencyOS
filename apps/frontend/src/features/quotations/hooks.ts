@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { QuoteStatus } from '@agencyos/shared';
+import type { QuoteStatus, QuoteTemplate } from '@agencyos/shared';
+import { updateDefaultQuoteTemplate } from '@/features/onboarding/api';
 import {
   createQuote,
   deleteQuote,
@@ -8,6 +9,7 @@ import {
   sendQuote,
   updateQuote,
   updateQuoteStatus,
+  updateQuoteTemplate,
   type ICreateQuoteInput,
 } from './api';
 
@@ -71,6 +73,31 @@ export function useUpdateQuote() {
     onSuccess: (_data, { id }) => {
       qc.invalidateQueries({ queryKey: QUOTES_KEY });
       qc.invalidateQueries({ queryKey: ['quotation', id] });
+    },
+  });
+}
+
+/** Change the template used to render one existing quotation. */
+export function useUpdateQuoteTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, template }: { id: string; template: QuoteTemplate }) =>
+      updateQuoteTemplate(id, template),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: QUOTES_KEY });
+      qc.invalidateQueries({ queryKey: ['quotation', id] });
+    },
+  });
+}
+
+/** Set the tenant's active (default) template — persisted so it need not be re-chosen. */
+export function useSetDefaultTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (template: QuoteTemplate) => updateDefaultQuoteTemplate(template),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['onboarding'] });
+      qc.invalidateQueries({ queryKey: QUOTES_KEY });
     },
   });
 }

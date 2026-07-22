@@ -1,7 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import type { Client, Prisma, Quote, QuoteEvent, QuoteLineItem, Tenant } from '@prisma/client';
-import { QuoteEventType, QuoteStatus } from '@agencyos/shared';
+import {
+  DEFAULT_QUOTE_TEMPLATE,
+  QuoteEventType,
+  QuoteStatus,
+  QuoteTemplate,
+} from '@agencyos/shared';
 import type { IPublicQuote, IQuote } from '@agencyos/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuoteDto } from './dto/create-quote.dto';
@@ -10,7 +15,9 @@ import { CreateQuoteDto } from './dto/create-quote.dto';
 const TRANSITIONS: Record<QuoteStatus, QuoteStatus[]> = {
   [QuoteStatus.DRAFT]: [QuoteStatus.SENT],
   [QuoteStatus.SENT]: [QuoteStatus.ACCEPTED, QuoteStatus.REJECTED, QuoteStatus.EXPIRED],
-  [QuoteStatus.ACCEPTED]: [QuoteStatus.CONVERTED],
+  // ACCEPTED → CONVERTED happens only via "Convert to invoice", never a manual status change,
+  // so a CONVERTED quote always has an invoice behind it.
+  [QuoteStatus.ACCEPTED]: [],
   [QuoteStatus.REJECTED]: [],
   [QuoteStatus.EXPIRED]: [],
   [QuoteStatus.CONVERTED]: [],
@@ -21,6 +28,7 @@ type QuoteRecord = Quote & {
   lineItems?: QuoteLineItem[];
   events?: QuoteEvent[];
   tenant?: Tenant | null;
+  invoice?: { id: string; number: string } | null;
 };
 
 @Injectable()
@@ -36,6 +44,7 @@ export class QuotationsService {
           tenantId,
           number,
           clientId: dto.clientId ?? null,
+          customerName: dto.clientId ? null : dto.customerName?.trim() || null,
           status: QuoteStatus.DRAFT,
           currency: 'BDT',
           expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
@@ -72,6 +81,7 @@ export class QuotationsService {
         where: { id },
         data: {
           clientId: dto.clientId ?? null,
+          customerName: dto.clientId ? null : dto.customerName?.trim() || null,
           expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
           note: dto.note?.trim(),
           terms: dto.terms?.trim(),
@@ -109,12 +119,22 @@ export class QuotationsService {
   }
 
   async findAll(tenantId: string): Promise<IQuote[]> {
-    const quotes = await this.prisma.quote.findMany({
-      where: { tenantId },
-      include: { client: true },
-      orderBy: { createdAt: 'desc' },
-    });
-    return quotes.map((q) => this.toDto(q, false));
+    const [tenant, quotes] = await Promise.all([
+      this.prisma.tenant.findUnique({ where: { id: tenantId } }),
+      this.prisma.quote.findMany({
+        where: { tenantId },
+        include: { client: true, invoice: { select: { id: true, number: true } } },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+    return quotes.map((q) => this.toDto(q, false, tenant?.defaultQuoteTemplate));
+  }
+
+  /** Changes the template used to render a quote (presentation only, any status). */
+  async updateTemplate(tenantId: string, id: string, template: QuoteTemplate): Promise<IQuote> {
+    await this.getOwned(tenantId, id);
+    await this.prisma.quote.update({ where: { id }, data: { template } });
+    return this.findOne(tenantId, id);
   }
 
   async findOne(tenantId: string, id: string): Promise<IQuote> {
@@ -262,9 +282,19 @@ export class QuotationsService {
   private detailInclude() {
     return {
       client: true,
+      tenant: true,
+      invoice: { select: { id: true, number: true } },
       lineItems: { orderBy: { sortOrder: 'asc' as const } },
       events: { orderBy: { createdAt: 'desc' as const } },
     };
+  }
+
+  /** A quote's own template wins; otherwise it inherits the tenant's active template. */
+  private effectiveTemplate(
+    override: string | null,
+    tenantDefault: string | null | undefined,
+  ): QuoteTemplate {
+    return (override ?? tenantDefault ?? DEFAULT_QUOTE_TEMPLATE) as QuoteTemplate;
   }
 
   private async addEvent(
@@ -295,14 +325,20 @@ export class QuotationsService {
     return `AOS-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
   }
 
-  private toDto(quote: QuoteRecord, withDetail: boolean): IQuote {
+  private toDto(quote: QuoteRecord, withDetail: boolean, tenantDefault?: string): IQuote {
     return {
       id: quote.id,
       tenantId: quote.tenantId,
       number: quote.number,
       clientId: quote.clientId,
-      clientName: quote.client?.name ?? null,
+      clientName: quote.client?.name ?? quote.customerName ?? null,
       status: quote.status as IQuote['status'],
+      invoiceId: quote.invoice?.id ?? null,
+      invoiceNumber: quote.invoice?.number ?? null,
+      template: this.effectiveTemplate(
+        quote.template,
+        tenantDefault ?? quote.tenant?.defaultQuoteTemplate,
+      ),
       currency: quote.currency,
       issueDate: quote.issueDate.toISOString(),
       expiresAt: quote.expiresAt ? quote.expiresAt.toISOString() : null,
@@ -340,8 +376,9 @@ export class QuotationsService {
     return {
       number: quote.number,
       agencyName: quote.tenant?.name ?? 'AgencyOS',
-      clientName: quote.client?.name ?? null,
+      clientName: quote.client?.name ?? quote.customerName ?? null,
       status: quote.status as IPublicQuote['status'],
+      template: this.effectiveTemplate(quote.template, quote.tenant?.defaultQuoteTemplate),
       currency: quote.currency,
       issueDate: quote.issueDate.toISOString(),
       expiresAt: quote.expiresAt ? quote.expiresAt.toISOString() : null,
