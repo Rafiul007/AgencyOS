@@ -1,21 +1,18 @@
-import { Box } from '@mui/material';
+import { useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { IconRail } from './IconRail';
-import { SidebarNav } from './SidebarNav';
-import { Topbar } from './Topbar';
+import { usePageTitleContext } from './PageTitleContext';
 
-/** Tixio-style shell: icon rail + contextual sidebar + topbar + scrollable content. */
+/**
+ * Page wrapper used inside the persistent {@link AppShell}. It no longer renders the
+ * shell (rail/sidebar/topbar) — that stays mounted across navigations — it only
+ * publishes this page's title to the Topbar and renders the page content.
+ */
 export function DashboardLayout({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-      <IconRail />
-      <SidebarNav />
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Topbar title={title} />
-        <Box sx={{ flexGrow: 1, overflowY: 'auto', bgcolor: '#f6f7fb', p: { xs: 2, md: 4 } }}>
-          {children}
-        </Box>
-      </Box>
-    </Box>
-  );
+  const { setTitle } = usePageTitleContext();
+  useEffect(() => {
+    setTitle(title);
+    return () => setTitle(null);
+  }, [title, setTitle]);
+
+  return <>{children}</>;
 }

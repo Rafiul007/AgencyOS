@@ -42,7 +42,11 @@ export function IconRail() {
         ))}
       </Stack>
 
-      <RailButton module={SETTINGS_ITEM} active={false} onClick={() => go(SETTINGS_ITEM)} />
+      <RailButton
+        module={SETTINGS_ITEM}
+        active={activeKey === SETTINGS_ITEM.key}
+        onClick={() => go(SETTINGS_ITEM)}
+      />
 
       <Avatar sx={{ width: 34, height: 34, bgcolor: brand.purple, fontSize: 14, mt: 2 }}>
         {initials}

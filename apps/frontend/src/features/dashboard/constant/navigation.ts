@@ -65,7 +65,8 @@ export const MODULES: IModule[] = [
         title: 'Clients',
         items: [
           { key: 'all-clients', label: 'All clients', icon: 'People', to: '/clients', ready: true },
-          { key: 'contacts', label: 'Contacts', icon: 'People' },
+          { key: 'contacts', label: 'Contacts', icon: 'Contact', to: '/contacts', ready: true },
+          { key: 'pipeline', label: 'Pipeline', icon: 'Board', to: '/contacts/board', ready: true },
         ],
       },
     ],
@@ -95,7 +96,13 @@ export const MODULES: IModule[] = [
             to: '/catalog',
             ready: true,
           },
-          { key: 'templates', label: 'Templates', icon: 'Description' },
+          {
+            key: 'templates',
+            label: 'Templates',
+            icon: 'Templates',
+            to: '/quotations/templates',
+            ready: true,
+          },
           { key: 'quote-settings', label: 'Quote settings', icon: 'Settings' },
         ],
       },
@@ -106,12 +113,13 @@ export const MODULES: IModule[] = [
     label: 'Invoices',
     short: 'Invoices',
     icon: 'Receipt',
+    to: '/invoices',
+    ready: true,
     sections: [
       {
         title: 'Billing',
         items: [
-          { key: 'invoices', label: 'All invoices', icon: 'Receipt' },
-          { key: 'payments', label: 'Payments', icon: 'Receipt' },
+          { key: 'invoices', label: 'All invoices', icon: 'Receipt', to: '/invoices', ready: true },
         ],
       },
     ],
@@ -163,27 +171,34 @@ export const MODULES: IModule[] = [
   },
 ];
 
-/** Settings lives on the main rail (bottom), not in the sub-menu. */
+/** Settings lives on the main rail (bottom), not in the module list. */
 export const SETTINGS_ITEM: IModule = {
   key: 'settings',
   label: 'Settings',
   short: 'Settings',
   icon: 'Settings',
-  sections: [],
+  to: '/settings/team',
+  ready: true,
+  sections: [
+    {
+      title: 'Settings',
+      items: [
+        { key: 'team', label: 'Team & roles', icon: 'People', to: '/settings/team', ready: true },
+        { key: 'workspace', label: 'Workspace', icon: 'Settings' },
+      ],
+    },
+  ],
 };
 
 /** Resolve which module the current route belongs to (defaults to Home). */
 export function getActiveModule(pathname: string): IModule {
+  const all = [...MODULES, SETTINGS_ITEM];
   // Prefer an exact sub-item match…
-  const bySection = MODULES.find((m) =>
-    m.sections.some((s) => s.items.some((i) => i.to === pathname)),
-  );
+  const bySection = all.find((m) => m.sections.some((s) => s.items.some((i) => i.to === pathname)));
   if (bySection) {
     return bySection;
   }
   // …then the module landing route, including nested paths (e.g. /quotations/new).
-  const byModule = MODULES.find(
-    (m) => m.to && (pathname === m.to || pathname.startsWith(`${m.to}/`)),
-  );
+  const byModule = all.find((m) => m.to && (pathname === m.to || pathname.startsWith(`${m.to}/`)));
   return byModule ?? MODULES[0];
 }
